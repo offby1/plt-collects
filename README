@@ -3,3 +3,7 @@ To make the code in here available to mzscheme programs in general:
 Put this directory into your PLTCOLLECTS environment variable, like this:
 
 export PLTCOLLECTS="$PLTCOLLECTS:this-directory"
+
+Then in your code, do something like
+
+(require (lib "howdy.ss" "offby1"))
