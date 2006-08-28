@@ -8,8 +8,9 @@ exec mzscheme -qu "$0" ${1+"$@"}
          (planet "test.ss"     ("schematics" "schemeunit.plt" 2))
          (planet "text-ui.ss"  ("schematics" "schemeunit.plt" 2)))
 (provide list->histogram)
-(define (list->histogram l)
-  (let ((h (make-hash-table)))
+
+(define (internal-l->h l <)
+  (let ((h (make-hash-table 'equal)))
     (for-each (lambda (elt)
                 (let ((orig (hash-table-get h elt 0)))
                   (hash-table-put! h elt (add1 orig))))
@@ -17,12 +18,35 @@ exec mzscheme -qu "$0" ${1+"$@"}
     (sort (hash-table-map h cons) (lambda (a b)
                                     (< (car a)
                                        (car b))))))
+
+(define list->histogram
+  (case-lambda
+    [( l) (internal-l->h l <)]
+    [(l <)(internal-l->h l <)]))
+
 
 (test/text-ui
  (test-suite
   "The one and only suite"
   (test-case "duh" (check-equal? (list->histogram '(1 2 3 2 0 1 1 1 1 1 1))
                                  '((0 . 1) (1 . 7) (2 . 2) (3 . 1))))
-  ))
+  (test-case
+   "non-numbers"
+   (check-equal?
+    (list->histogram '((1 . 2)
+                       (2 . 1)
+                       (1 . 2))
+
+                     (lambda (p1 p2)
+                       (or (< (car p1)
+                              (car p2))
+                           (and (= (car p1)
+                                   (car p2))
+                                (< (cdr p1)
+                                   (cdr p2))))))
+
+    '(((1 . 2) . 2)
+      ((2 . 1) . 1))))))
+
 
 )
