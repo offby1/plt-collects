@@ -5,9 +5,17 @@ exec mzscheme -qu "$0" ${1+"$@"}
 |#
 
 (module assert mzscheme
-(provide assert)
+(provide (all-defined))
+
 (define-syntax assert
   (syntax-rules ()
     ((assert _expr)
      (or _expr
-         (error "failed assertion: " '_expr))))))
+         (error "failed assertion: " '_expr)))))
+
+(define-syntax check-type
+  (syntax-rules ()
+    ((check-type _name-symbol _predicate _value)
+     (or (_predicate _value)
+         (raise-type-error _name-symbol (format "~a" _predicate) _value)))))
+)
