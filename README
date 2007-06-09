@@ -7,3 +7,6 @@ export PLTCOLLECTS="$PLTCOLLECTS:this-directory"
 Then in your code, do something like
 
 (require (lib "howdy.ss" "offby1"))
+
+
+I suppose I should really upload this stuff to planet.plt-scheme.org.

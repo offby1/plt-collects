@@ -1,7 +1,7 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
 #$Id$
-exec mzscheme -qu "$0" ${1+"$@"}
+exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
 |#
 
 (module round mzscheme
@@ -64,10 +64,15 @@ exec mzscheme -qu "$0" ${1+"$@"}
        )))
 (exit-if-failed
  (test/text-ui
-  (test-equal?
-   "yow"
-   (my-round 1.234 2)
-   #e1.2)
-
+  (test-suite
+   "The one and only suite"
+   (test-equal?
+    "fraction"
+    (my-round 1.234 2)
+    #e1.2)
+   (test-equal?
+    "whole"
+    (my-round 1234 2)
+    1200))
   ))
 )
