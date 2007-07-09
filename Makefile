@@ -7,7 +7,7 @@ planet   := planet
 
 plt-file := offby1.plt
 owner := offby1
-version := 1 1
+version := 1 2
 
 $(plt-file): $(wildcard *.ss *.scm) doc.txt
 	$(planet) --create-archive . 
