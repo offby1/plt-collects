@@ -4,6 +4,13 @@
 exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
 |#
 
+;; zdate is a handy function that formats a struct:date in ISO-8601 style.
+
+;; TODO: write an all-purpose "date->string" that checks its input --
+;; if it's a SRFI-19 date, it simply applies SRFI-19's date->string to
+;; its arguments; if it's a PLT date, it converts the date vis
+;; PLT-date->srfi-19-date and then applies date->string to its arguments.
+
 (module zdate mzscheme
 (require (only (lib "date.ss")
                find-seconds)
