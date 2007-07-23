@@ -53,8 +53,8 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
                   ))
       tz-offset))))
 
-(define (zdate PLT-date)
-  (date->string  (PLT-date->srfi-19-date PLT-date) "~Y-~m-~dT~X~z"))
+(define (zdate any-date)
+  (all-purpose-date->string  any-date "~Y-~m-~dT~X~z"))
 
 (provide (all-defined-except all-purpose-date->string)
          (rename all-purpose-date->string date->string))
