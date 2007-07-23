@@ -31,6 +31,8 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
      (else
       (error "Not a date:" thing)))))
 
+;; I am only about 95% certain that srfi-19's "monotonic" time
+;; corresponds to PLT's seconds.
 (define (srfi-19-date->PLT-date struct-tm-date)
   (seconds->date (time-second (date->time-monotonic struct-tm-date))))
 
