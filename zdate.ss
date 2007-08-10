@@ -7,7 +7,8 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
 ;; zdate is a handy function that formats a struct:date in ISO-8601 style.
 
 (module zdate mzscheme
-(require (only (lib "date.ss")
+(require (lib "kw.ss")
+         (only (lib "date.ss")
                find-seconds)
          (only (lib "19.ss" "srfi")
                date->string
@@ -55,7 +56,9 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
                   ))
       tz-offset))))
 
-(define (zdate any-date)
+(define/kw (zdate #:optional any-date)
+  (when (not any-date)
+    (set! any-date (seconds->date (current-seconds))))
   (all-purpose-date->string  any-date "~Y-~m-~dT~X~z"))
 
 (provide (all-defined-except all-purpose-date->string)
