@@ -17,13 +17,10 @@ clean:
 
 # planet --file gacks if it's already installed, so we uninstall first.
 
-# TODO -- find a way of examining the installed thingy, and seeing if
-# it's actually older than the current plt-file.
-install: $(plt-file)
-	-$(MAKE) uninstall
-	$(planet) --file $^ $(owner) $(version)
+install: 
+	$(planet) --associate $(owner) $(plt-file) $(version) $$(pwd)
 
 uninstall:
-	$(planet)  --erase $(owner) $(plt-file) $(version)
+	$(planet) --erase $(owner) $(plt-file) $(version)
 
 .PHONY: clean install uninstall
