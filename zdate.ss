@@ -59,7 +59,10 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
 (define/kw (zdate #:optional any-date)
   (when (not any-date)
     (set! any-date (seconds->date (current-seconds))))
-  (all-purpose-date->string  any-date "~Y-~m-~dT~X~z"))
+  (all-purpose-date->string
+   (if (integer? any-date)
+       (seconds->date any-date)
+     any-date) "~Y-~m-~dT~X~z"))
 
 (provide (all-defined-except all-purpose-date->string)
          (rename all-purpose-date->string date->string))
