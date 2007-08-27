@@ -10,10 +10,10 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
                unfold))
 
 ;; just an example of using "unfold"
-(define (port->lines ip)
+(define (port->lines ip . mode-symbol)
   (unfold (lambda (ip)
             (eof-object? (peek-char ip)))
-          read-line
+          (lambda (ip) (apply read-line ip mode-symbol))
           values
           ip))
 
