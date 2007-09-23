@@ -1,7 +1,3 @@
-# at Amazon, you'd invoke this makefile like this:
-
-# make mzscheme="/apollo/bin/env /apollo/env/hanchrow-PLT/bin/mzscheme" planet="/apollo/bin/env /apollo/env/hanchrow-PLT/bin/planet"
-
 mzscheme := mzscheme
 planet   := planet
 
