@@ -5,6 +5,7 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
 |#
 (module hostinfo mzscheme
 (require (lib "dns.ss" "net")
+         (planet "assert.ss" ("offby1" "offby1.plt"))
          (only (planet "port.ss" ("schematics" "port.plt" ))
                port->string)
          (only (lib "misc.ss" "swindle")
@@ -17,10 +18,58 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
                string-join)
          (lib "trace.ss"))
 
+(define (get-name . args)
+  (apply dns-get-name args))
+(trace get-name)
+
+;; given a string, returns two values: the hostname described by the
+;; string, and a guess as to the country in which that host lives.
+(define (get-info hostname-or-ip-string)
+  ;; These are the four numbers that make up the IP address.
+  (define address (with-handlers ([exn:fail? (lambda (e) #f)])
+                    (string->ip-address  hostname-or-ip-string)))
+
+  (define name (and (not address) hostname-or-ip-string))
+  (when (not address)
+    (set!
+     address
+     (with-handlers ([exn:fail? (lambda (e) #f)])
+        (string->ip-address
+         (dns-get-address *nameserver* name)))))
+
+  (when (not name)
+    (set!
+     name
+     (with-handlers
+         ([exn:fail?
+           (lambda (e)
+                  (fprintf
+                   (current-error-port)
+                   "Damn: ~s~%" e)
+                  #f)])
+     (get-name *nameserver* address))))
+
+  (with-handlers
+      ([exn:fail?
+        (lambda (e)
+
+          (values "??" "??"))])
+    (values
+     (or
+      name
+      (let ((address (ip-address->strings address)))
+        (or
+         (apply try address)
+         (apply try  "in-addr.arpa" (reverse address))
+         (apply try  "in-addr.arpa" (cdr (reverse address)))
+         (apply try  "in-addr.arpa" (cddr (reverse address)))
+         "??")))
+     (geoiplookup (ip-address->string address)))))
+
 ;; This should probalby be a parameter, and be provided
 (define *nameserver*
-  "208.67.220.220" ;; opendns.com.
-  ;; (dns-find-nameserver)                 ; default
+  ;;"208.67.220.220" ;; opendns.com.
+  (dns-find-nameserver)                 ; default
   )
 
 ;; find as much information as possible about a machine, given its IP
@@ -46,11 +95,40 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
             (reverse lines)
             (loop (cons one-line lines)))))))
 
-(define (ip-string->list str)
+(define (string->ip-address str)
   (regexp-case
    str
-   [#px"^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$" => (lambda args (cdr args))]
-   [else #f]))
+   [#px"^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$"
+       =>
+       (lambda args (apply public-make-ip-address (cdr args)))]
+   [else (error 'string->ip-address "~s doesn't look like an IP address" str)]))
+
+(define-struct ip-address (a b c d) #f)
+
+(define (ip-address->strings ip)
+  (check-type 'ip-address->strings ip-address? ip)
+  (map number->string (cdr (vector->list (struct->vector ip)))))
+
+(trace ip-address->strings)
+
+(define (ip-address->string ip)
+   (string-join (ip-address->strings ip) "."))
+
+(define (public-make-ip-address a b c d)
+
+  (define (puke datum)
+    (error
+     'public-make-ip-address
+     "Wanted four dot-separated integers 'twixt 0 and 255 inclusive; but one of them was ~s"
+     datum))
+
+  (apply
+   make-ip-address
+   (map (lambda (str)
+          (let ((datum (read-from-string str (lambda (e) (puke str)))))
+            (when (not (byte? datum)) (puke datum))
+            datum))
+        (list a b c d))))
 
 (define-struct (exn:fail:process           exn:fail        ) (                ) #f)
 (define-struct (exn:fail:process:exit      exn:fail:process) (status exit-code) #f)
@@ -100,21 +178,32 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
       (port->string/close stdout))))
 (trace shell-command->string)
 
-(define (verbose-dns-get-name . args)
-  (apply dns-get-name args))
-(trace verbose-dns-get-name)
-
 (define (try . components)
   (let ((got (with-handlers
                  ([exn:fail?
                    (lambda (e) #f)])
 
-               (verbose-dns-get-name
+               (get-name
                 *nameserver*
                 (string-join components ".")))))
     (and (not (equal? "nxdomain.guide.opendns.com" got))
          got)))
 (trace try)
+
+(define (geoiplookup h)
+  (with-handlers
+      ([exn:fail:process?
+        (lambda (e) #f)])
+    (regexp-case
+     (car (split-on-newlines
+           (shell-command->string
+            ;; The Debian package 'geoip-bin'
+            ;; http://www.maxmind.com/download/geoip/api/c/
+            "geoiplookup"
+            h)))
+     [(#px"GeoIP Country Edition: (..)," iso-code)
+         iso-code]
+     [#t "--"])))
 
 (provide (all-defined))
 )
