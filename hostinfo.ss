@@ -64,7 +64,17 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
          (apply try  "in-addr.arpa" (cdr (reverse address)))
          (apply try  "in-addr.arpa" (cddr (reverse address)))
          "??")))
-     (geoiplookup (ip-address->string address)))))
+     (or
+      (geoiplookup (ip-address->string address))
+      (guess-country-from-hostname name)
+      "??"))))
+
+(define (guess-country-from-hostname str)
+  (regexp-case
+   str
+   [(#px"\\.([[:alpha:]]{2})$" kaching) kaching]
+   [else #f]))
+(trace guess-country-from-hostname)
 
 ;; This should probalby be a parameter, and be provided
 (define *nameserver*
@@ -193,7 +203,7 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
 (define (geoiplookup h)
   (with-handlers
       ([exn:fail:process?
-        (lambda (e) "--")])
+        (lambda (e) #f)])
     (regexp-case
      (car (split-on-newlines
            (shell-command->string
@@ -202,8 +212,9 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
             "geoiplookup"
             h)))
      [(#px"GeoIP Country Edition: (..)," iso-code)
-         iso-code]
-     [#t "--"])))
+         (and (not (equal? iso-code "--"))
+              iso-code)]
+     [#t #f])))
 
 (provide (all-defined))
 )
