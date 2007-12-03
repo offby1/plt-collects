@@ -11,6 +11,7 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
          (only (lib "misc.ss" "swindle")
                regexp-case)
          (lib "match.ss")
+         (only (planet "memoize.ss" ("dherman" "memoize.plt" )) define/memo*)
          (lib "process.ss")
          (lib "string.ss")
          ;;(lib "1.ss" "srfi")
@@ -18,9 +19,13 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
                string-join)
          (lib "trace.ss"))
 
-(define (get-name . args)
+(define/memo* (get-name . args)
   (apply dns-get-name args))
 (trace get-name)
+
+(define/memo* (get-address . args)
+  (apply dns-get-address args))
+(trace get-address)
 
 ;; given a string, returns two values: the hostname described by the
 ;; string, and a guess as to the country in which that host lives.
@@ -35,7 +40,7 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
      address
      (with-handlers ([exn:fail? (lambda (e) #f)])
         (string->ip-address
-         (dns-get-address *nameserver* name)))))
+         (get-address *nameserver* name)))))
 
   (when (not name)
     (set!
@@ -216,5 +221,5 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
               iso-code)]
      [#t #f])))
 
-(provide (all-defined))
+(provide get-info)
 )
