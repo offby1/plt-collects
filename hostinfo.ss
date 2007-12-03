@@ -205,7 +205,7 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
          got)))
 (trace try)
 
-(define (geoiplookup h)
+(define/memo* (geoiplookup h)
   (with-handlers
       ([exn:fail:process?
         (lambda (e) #f)])
