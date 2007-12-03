@@ -193,7 +193,7 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
 (define (geoiplookup h)
   (with-handlers
       ([exn:fail:process?
-        (lambda (e) #f)])
+        (lambda (e) "--")])
     (regexp-case
      (car (split-on-newlines
            (shell-command->string
