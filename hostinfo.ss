@@ -47,12 +47,8 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
      name
      (with-handlers
          ([exn:fail?
-           (lambda (e)
-                  (fprintf
-                   (current-error-port)
-                   "Damn: ~s~%" e)
-                  #f)])
-     (get-name *nameserver* address))))
+           (lambda (e) #f)])
+     (get-name *nameserver* (ip-address->string address)))))
 
   (with-handlers
       ([exn:fail?
@@ -73,6 +69,8 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
       (geoiplookup (ip-address->string address))
       (guess-country-from-hostname name)
       "??"))))
+
+(trace get-info)
 
 (define (guess-country-from-hostname str)
   (regexp-case
