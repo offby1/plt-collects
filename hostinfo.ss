@@ -1,7 +1,7 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
 #$Id$
-exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0" -p "text-ui.ss" "schematics" "schemeunit.plt" -e "(exit (test/text-ui hostinfo-tests 'verbose))"
+exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.ss" "schematics" "schemeunit.plt" -e "(exit (test/text-ui hostinfo-tests 'verbose))"
 |#
 (module hostinfo mzscheme
 (require (lib "dns.ss" "net")
@@ -21,11 +21,9 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
 
 (define/memo* (get-name . args)
   (apply dns-get-name args))
-(trace get-name)
 
 (define/memo* (get-address . args)
   (apply dns-get-address args))
-(trace get-address)
 
 ;; given a string, returns two values: the hostname described by the
 ;; string, and a guess as to the country in which that host lives.
@@ -70,14 +68,11 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
       (guess-country-from-hostname name)
       "??"))))
 
-(trace get-info)
-
 (define (guess-country-from-hostname str)
   (regexp-case
    str
    [(#px"\\.([[:alpha:]]{2})$" kaching) kaching]
    [else #f]))
-(trace guess-country-from-hostname)
 
 ;; This should probalby be a parameter, and be provided
 (define *nameserver*
@@ -122,8 +117,6 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
   (check-type 'ip-address->strings ip-address? ip)
   (map number->string (cdr (vector->list (struct->vector ip)))))
 
-(trace ip-address->strings)
-
 (define (ip-address->string ip)
    (string-join (ip-address->strings ip) "."))
 
@@ -154,7 +147,6 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
 
 (define (fep . args)
   (apply find-executable-path args))
-(trace fep)
 
 (define (shell-command->string . args)
   (let ((command
@@ -189,7 +181,6 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
                 (controller 'status)
                 (controller 'exit-code))))
       (port->string/close stdout))))
-(trace shell-command->string)
 
 (define (try . components)
   (let ((got (with-handlers
@@ -201,7 +192,6 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
                 (string-join components ".")))))
     (and (not (equal? "nxdomain.guide.opendns.com" got))
          got)))
-(trace try)
 
 (define/memo* (geoiplookup h)
   (with-handlers
