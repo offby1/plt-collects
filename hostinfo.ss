@@ -14,10 +14,9 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.
          (only (planet "memoize.ss" ("dherman" "memoize.plt" )) define/memo*)
          (lib "process.ss")
          (lib "string.ss")
-         ;;(lib "1.ss" "srfi")
+         (lib "trace.ss")
          (only (lib "13.ss" "srfi")
-               string-join)
-         (lib "trace.ss"))
+               string-join))
 
 (define/memo* (get-name . args)
   (apply dns-get-name args))
@@ -164,8 +163,6 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.
                       args (car args))
               (current-continuation-marks))))
 
-    (fprintf (current-error-port) "args: ~s~%" args)
-
     (match-let ([(stdout stdin pid stderr controller)
                  (apply process*  command (cdr args))])
 
@@ -199,11 +196,18 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.
         (lambda (e) #f)])
     (regexp-case
      (car (split-on-newlines
-           (shell-command->string
-            ;; The Debian package 'geoip-bin'
-            ;; http://www.maxmind.com/download/geoip/api/c/
-            "geoiplookup"
-            h)))
+           ;; The Debian package 'geoip-bin'
+           ;; http://www.maxmind.com/download/geoip/api/c/
+           (let again ((exe "geoiplookup")
+                       (tries 1))
+             (with-handlers
+                 ([exn:fail:process:not-found?
+                   (lambda (e)
+                     (if (= 1 tries)
+                         (again "/usr/bin/geoiplookup" (add1 tries))
+                         (raise e)))])
+
+               (shell-command->string exe h)))))
      [(#px"GeoIP Country Edition: (..)," iso-code)
          (and (not (equal? iso-code "--"))
               iso-code)]
