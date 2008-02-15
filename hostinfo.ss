@@ -1,7 +1,7 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
 #$Id$
-exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.ss" "schematics" "schemeunit.plt" -e "(exit (test/text-ui hostinfo-tests 'verbose))"
+exec mzscheme --no-init-file --mute-banner --version --require "$0"
 |#
 (module hostinfo mzscheme
 (require (lib "dns.ss" "net")
@@ -24,34 +24,33 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.
 (define/memo* (get-address . args)
   (apply dns-get-address args))
 
+(define-syntax safely
+  (syntax-rules ()
+    ((safely _expr)
+     (with-handlers ([exn:fail? (lambda (e) #f)])
+       _expr))))
+
 ;; given a string, returns two values: the hostname described by the
 ;; string, and a guess as to the country in which that host lives.
 (define (get-info hostname-or-ip-string)
   ;; These are the four numbers that make up the IP address.
-  (define address (with-handlers ([exn:fail? (lambda (e) #f)])
-                    (string->ip-address  hostname-or-ip-string)))
+  (define address (safely (string->ip-address  hostname-or-ip-string)))
 
   (define name (and (not address) hostname-or-ip-string))
   (when (not address)
     (set!
      address
-     (with-handlers ([exn:fail? (lambda (e) #f)])
-        (string->ip-address
-         (get-address *nameserver* name)))))
+     (safely
+      (string->ip-address
+       (get-address *nameserver* name)))))
 
   (when (not name)
     (set!
      name
-     (with-handlers
-         ([exn:fail?
-           (lambda (e) #f)])
-     (get-name *nameserver* (ip-address->string address)))))
+     (safely
+       (get-name *nameserver* (ip-address->string address)))))
 
-  (with-handlers
-      ([exn:fail?
-        (lambda (e)
-
-          (values "??" "??"))])
+  (safely
     (values
      (or
       name
@@ -147,6 +146,7 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.
 (define (fep . args)
   (apply find-executable-path args))
 
+;; Strange that I had to write this myself.
 (define (shell-command->string . args)
   (let ((command
          (let again ((command (car args))
@@ -180,10 +180,7 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0" -p "text-ui.
       (port->string/close stdout))))
 
 (define (try . components)
-  (let ((got (with-handlers
-                 ([exn:fail?
-                   (lambda (e) #f)])
-
+  (let ((got (safely
                (get-name
                 *nameserver*
                 (string-join components ".")))))
