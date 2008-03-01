@@ -48,23 +48,23 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0"
     (set!
      name
      (safely
-       (get-name *nameserver* (ip-address->string address)))))
+      (get-name *nameserver* (ip-address->string address)))))
 
-  (safely
-    (values
-     (or
-      name
-      (let ((address (ip-address->strings address)))
-        (or
-         (apply try address)
-         (apply try  "in-addr.arpa" (reverse address))
-         (apply try  "in-addr.arpa" (cdr (reverse address)))
-         (apply try  "in-addr.arpa" (cddr (reverse address)))
-         "??")))
-     (or
-      (geoiplookup (ip-address->string address))
-      (guess-country-from-hostname name)
-      "??"))))
+  (values
+   (or
+    name
+    (let ((address (ip-address->strings address)))
+      (or
+       (apply try address)
+       (apply try  "in-addr.arpa" (reverse address))
+       (apply try  "in-addr.arpa" (cdr (reverse address)))
+       (apply try  "in-addr.arpa" (cddr (reverse address)))
+       "??")))
+   (safely
+    (or
+     (geoiplookup (ip-address->string address))
+     (guess-country-from-hostname name)
+     "??"))))
 
 (define (guess-country-from-hostname str)
   (regexp-case
