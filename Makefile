@@ -11,10 +11,8 @@ $(plt-file): $(wildcard *.ss *.scm) doc.txt
 clean:
 	-rm $(plt-file)
 
-# planet --file gacks if it's already installed, so we uninstall first.
-
 install: 
-	$(planet) --associate $(owner) $(plt-file) $(version) $$(pwd)
+	$(planet) link $(owner) $(plt-file) $(version) $$(pwd)
 
 uninstall:
 	$(planet) --erase $(owner) $(plt-file) $(version)
