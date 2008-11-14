@@ -1,69 +1,77 @@
-#! /bin/sh
-#| Hey Emacs, this is -*-scheme-*- code!
-#$Id$
-exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
-|#
+#lang scheme
 
-;; zdate is a handy function that formats a struct:date in ISO-8601 style.
+(require scheme/date
+         (prefix-in srfi-19- srfi/19)
+         scheme/port
+         (planet schematics/schemeunit:3))
+(define (zdate
+         [the-time (srfi-19-current-time)]
+         #:format [format-string "~4"]
+         #:offset [offset
+                   (srfi-19-date-zone-offset
+                    (srfi-19-time-utc->date (srfi-19-current-time)))])
+  (cond
 
-(module zdate mzscheme
-(require (lib "kw.ss")
-         (only (lib "date.ss")
-               find-seconds)
-         (only (lib "19.ss" "srfi")
-               date->string
-               date->time-monotonic
-               current-date
-               make-time
-               time-monotonic
-               time-monotonic->date
-               time-second
-               )
-         (rename (lib "19.ss" "srfi") srfi-19:date? date?))
+   ;; Something like "last week" -- let /bin/date parse that
+   ((string? the-time)
+    (let-values (((child
+                   stdout-ip
+                   stdin-op
+                   stderr-ip)
+                  (subprocess #f #f #f
+                              "/bin/date"
+                              "-u"
+                              "+%s"
+                              (format "--date=~a" the-time))))
 
-(define (all-purpose-date->string . args)
-  (let ((thing (car args))
-        (args (cdr args)))
-    (cond
-     ((srfi-19:date? thing)
-      (apply date->string thing args))
-     ((date? thing)
-      (apply date->string (PLT-date->srfi-19-date thing) args))
-     (else
-      (error "Not a date:" thing)))))
+      (close-output-port stdin-op)
+      (subprocess-wait child)
+      (let ((stat  (subprocess-status child)))
+        (when (positive? stat)
+          (copy-port stdout-ip (current-output-port))
+          (copy-port stderr-ip (current-error-port))
+          (close-input-port stderr-ip)
+          (error 'zdate "/bin/date returned ~s" stat)))
+      (let ((seconds-string (read-line stdout-ip)))
+        (close-input-port stdout-ip)
+        (zdate (string->number seconds-string) #:format format-string #:offset offset))))
 
-;; I am only about 95% certain that srfi-19's "monotonic" time
-;; corresponds to PLT's seconds.
-(define (srfi-19-date->PLT-date struct-tm-date)
-  (seconds->date (time-second (date->time-monotonic struct-tm-date))))
+   ;; Seconds since The Epoch, like a time_t
+   ((integer? the-time)
+    (zdate (srfi-19-make-time 'time-utc 0 the-time) #:format format-string #:offset offset))
 
-;; loses the nanosecond info.  Such is life.
-(define (PLT-date->srfi-19-date struct-date . tz-offset)
-  (let ((tz-offset (if (null? tz-offset)
-                       0
-                     (car tz-offset))))
-    (apply
-     time-monotonic->date
-     (list
-      (make-time time-monotonic 0
-                 (find-seconds
-                  (date-second struct-date)
-                  (date-minute struct-date)
-                  (date-hour struct-date)
-                  (date-day struct-date)
-                  (date-month struct-date)
-                  (date-year struct-date)
-                  ))
-      tz-offset))))
+   ((srfi-19-time? the-time)
+    (srfi-19-date->string (srfi-19-time-utc->date the-time offset) format-string))
 
-(define/kw (zdate #:optional any-date)
-  (when (not any-date)
-    (set! any-date (seconds->date (current-seconds))))
-  (all-purpose-date->string
-   (if (integer? any-date)
-       (seconds->date any-date)
-     any-date) "~Y-~m-~dT~X~z"))
+   ((srfi-19-date? the-time)
+    (zdate (srfi-19-date->time-utc the-time) #:format format-string #:offset offset))
 
-(provide (all-defined-except all-purpose-date->string)
-         (rename all-purpose-date->string date->string))
-)
+   ;; Scheme/date
+   ((date? the-time)
+    (zdate
+     (srfi-19-make-date
+      0
+      (date-second           the-time)
+      (date-minute           the-time)
+      (date-hour             the-time)
+      (date-day              the-time)
+      (date-month            the-time)
+      (date-year             the-time)
+      (date-time-zone-offset the-time))
+     #:format format-string
+     #:offset offset))
+
+   (else
+    (error 'zdate "Don't know what to do with ~s" the-time))))
+
+(provide zdate)
+(check-equal? (zdate 0 #:offset 0) "1970-01-01T00:00:00Z")
+(check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
+(check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
+(check-equal? (zdate (srfi-19-make-date 0 0 0 0 1 1 1970 0) #:offset 0) "1970-01-01T00:00:00Z")
+(check-equal? (zdate (struct-copy
+                      date
+                      (seconds->date (find-seconds 0 0 0 1 1 1970))
+                      [time-zone-offset 0])
+                     #:offset 0)
+              "1970-01-01T00:00:00Z")
