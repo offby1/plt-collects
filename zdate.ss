@@ -4,6 +4,7 @@
          (prefix-in srfi-19- srfi/19)
          scheme/port
          (planet schematics/schemeunit:3))
+
 (define (zdate
          [the-time (srfi-19-current-time)]
          #:format [format-string "~4"]
@@ -66,9 +67,9 @@
 
 (provide zdate)
 (check-equal? (zdate 0 #:offset 0) "1970-01-01T00:00:00Z")
-(check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
-(check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
 (check-equal? (zdate (srfi-19-make-date 0 0 0 0 1 1 1970 0) #:offset 0) "1970-01-01T00:00:00Z")
+(check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
+(check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
 (check-equal? (zdate (struct-copy
                       date
                       (seconds->date (find-seconds 0 0 0 1 1 1970))
