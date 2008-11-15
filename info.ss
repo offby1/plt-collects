@@ -6,4 +6,5 @@
 (define doc.txt "doc.txt")
 (define primary-file "howdy.ss")
 (define categories '(misc))
+(define scribblings '(("manual.scrbl" ())))
 )

@@ -8,6 +8,10 @@ version := 2 0
 $(plt-file): $(wildcard *.ss *.scm) doc.txt
 	$(planet) create . 
 
+.PHONY: doc
+doc:
+	setup-plt -P $(owner) $(plt-file) $(version)
+
 clean:
 	-rm $(plt-file)
 
