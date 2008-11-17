@@ -1,21 +1,17 @@
-#! /bin/sh
-#| Hey Emacs, this is -*-scheme-*- code!
-#$Id$
-exec mzscheme --no-init-file --mute-banner --version --require "$0"
-|#
-(module hostinfo mzscheme
-(require (lib "dns.ss" "net")
+#lang scheme
+
+(require net/dns
          (planet "assert.ss" ("offby1" "offby1.plt"))
-         (only (planet "port.ss" ("schematics" "port.plt" ))
+         (only-in (planet "port.ss" ("schematics" "port.plt" ))
                port->string)
-         (only (lib "misc.ss" "swindle")
+         (only-in (lib "misc.ss" "swindle")
                regexp-case)
          (lib "match.ss")
-         (only (planet "memoize.ss" ("dherman" "memoize.plt" )) define/memo*)
+         (planet "main.ss" ("dherman" "memoize.plt" 3 1))
          (lib "process.ss")
          (lib "string.ss")
          (lib "trace.ss")
-         (only (lib "13.ss" "srfi")
+         (only-in (lib "13.ss" "srfi")
                string-join))
 
 (define/memo* (get-name . args)
@@ -109,7 +105,7 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0"
        (lambda args (apply public-make-ip-address (cdr args)))]
    [else (error 'string->ip-address "~s doesn't look like an IP address" str)]))
 
-(define-struct ip-address (a b c d) #f)
+(define-struct ip-address (a b c d) #:transparent)
 
 (define (ip-address->strings ip)
   (check-type 'ip-address->strings ip-address? ip)
@@ -134,9 +130,9 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0"
             datum))
         (list a b c d))))
 
-(define-struct (exn:fail:process           exn:fail        ) (                ) #f)
-(define-struct (exn:fail:process:exit      exn:fail:process) (status exit-code) #f)
-(define-struct (exn:fail:process:not-found exn:fail:process) (                ) #f)
+(define-struct (exn:fail:process           exn:fail        ) (                ) #:transparent)
+(define-struct (exn:fail:process:exit      exn:fail:process) (status exit-code) #:transparent)
+(define-struct (exn:fail:process:not-found exn:fail:process) (                ) #:transparent)
 
 (define (port->string/close ip)
   (begin0
@@ -211,4 +207,3 @@ exec mzscheme --no-init-file --mute-banner --version --require "$0"
      [#t #f])))
 
 (provide get-info)
-)
