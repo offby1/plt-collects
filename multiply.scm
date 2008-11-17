@@ -1,4 +1,4 @@
-#| -- hey Emacs: leave that comment marker alone!!
+#|
 
 This function solves a problem: You want to call a function
 repeatedly with all possible combinations of arguments.  For
@@ -59,8 +59,10 @@ I think you could also describe this function as returning the
 as defining `domain's.
 |#
 ;; from kilimanjaro on #scheme
-(module multiply mzscheme
+#lang scheme
+
 (provide multiply)
+
 (define (multiply list-of-lists)
   (define (foobar lst lsts)
     (if (null? lsts)
@@ -71,4 +73,4 @@ as defining `domain's.
 
   (if (null? list-of-lists)
       '()
-    (foobar (car list-of-lists) (multiply (cdr list-of-lists))))))
+    (foobar (car list-of-lists) (multiply (cdr list-of-lists)))))
