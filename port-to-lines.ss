@@ -1,24 +1,22 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
 #$Id$
-exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
+exec  mzscheme --require "$0" --main -- ${1+"$@"}
 |#
 
-(module port-to-lines mzscheme
-
-(require (only (lib "1.ss" "srfi")
-               unfold))
-
-;; just an example of using "unfold"
-(define (port->lines ip . mode-symbol)
-  (unfold (lambda (ip)
-            (eof-object? (peek-char ip)))
-          (lambda (ip) (apply read-line ip mode-symbol))
-          values
-          ip))
+#lang scheme
 
 (define (file->lines fn)
-  (call-with-input-file fn port->lines))
+  (call-with-input-file
+      fn
+    (lambda (ip)
+      (for/list ([line (in-lines ip)])
+        line))))
 
-(provide (all-defined))
-)
+(define (main . args)
+  (for ([fn (in-list args)])
+    (for ([line (in-list (file->lines fn))])
+      (display line)
+      (newline))))
+
+(provide (all-defined-out))
