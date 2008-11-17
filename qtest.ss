@@ -20,13 +20,10 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
      (check-equal? 2 (front-queue q))
      (delete-queue! q)
      (delete-queue! q)
-     (check-exn
-      exn:fail?
-      (lambda () (front-queue q) ))
+     (check-exn exn:fail:contract? (lambda () (front-queue q) ))
      (insert-queue! q 'yow)
      (check-equal? 'yow (front-queue q)))
 
-   (check-exn exn:fail:contract? (lambda () (front-queue (make-queue '()))))
    (check-exn exn:fail:contract? (lambda () (delete-queue! (make-queue '()))))))
 
 (define (main . args)
