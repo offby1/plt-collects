@@ -2,17 +2,11 @@
 
 (require net/dns
          (planet "assert.ss" ("offby1" "offby1.plt"))
-         (only-in (planet "port.ss" ("schematics" "port.plt" ))
-               port->string)
-         (only-in (lib "misc.ss" "swindle")
-               regexp-case)
-         (lib "match.ss")
          (planet "main.ss" ("dherman" "memoize.plt" 3 1))
-         (lib "process.ss")
-         (lib "string.ss")
-         (lib "trace.ss")
-         (only-in (lib "13.ss" "srfi")
-               string-join))
+         scheme/port
+         mzlib/process
+         mzlib/string
+         )
 
 (define/memo* (get-name . args)
   (apply dns-get-name args))
@@ -63,9 +57,8 @@
      "??"))))
 
 (define (guess-country-from-hostname str)
-  (regexp-case
-   str
-   [(#px"\\.([[:alpha:]]{2})$" kaching) kaching]
+  (match str
+   [(regexp #px"\\.([[:alpha:]]{2})$" (list _ kaching)) kaching]
    [else #f]))
 
 ;; This should probalby be a parameter, and be provided
@@ -98,11 +91,11 @@
             (loop (cons one-line lines)))))))
 
 (define (string->ip-address str)
-  (regexp-case
-   str
-   [#px"^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$"
-       =>
-       (lambda args (apply public-make-ip-address (cdr args)))]
+  (match str
+   [(regexp #px"^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$"
+            args)
+
+    (apply public-make-ip-address (cdr args))]
    [else (error 'string->ip-address "~s doesn't look like an IP address" str)]))
 
 (define-struct ip-address (a b c d) #:transparent)
@@ -135,9 +128,10 @@
 (define-struct (exn:fail:process:not-found exn:fail:process) (                ) #:transparent)
 
 (define (port->string/close ip)
-  (begin0
-      (port->string ip)
-    (close-input-port ip)))
+  (let ((op (open-output-string)))
+    (copy-port ip op)
+    (close-input-port ip)
+    (get-output-string op)))
 
 (define (fep . args)
   (apply find-executable-path args))
@@ -159,7 +153,7 @@
                       args (car args))
               (current-continuation-marks))))
 
-    (match-let ([(stdout stdin pid stderr controller)
+    (match-let ([(list stdout stdin pid stderr controller)
                  (apply process*  command (cdr args))])
 
       (close-output-port stdin)
@@ -187,7 +181,7 @@
   (with-handlers
       ([exn:fail:process?
         (lambda (e) #f)])
-    (regexp-case
+    (match
      (car (split-on-newlines
            ;; The Debian package 'geoip-bin'
            ;; http://www.maxmind.com/download/geoip/api/c/
@@ -201,9 +195,9 @@
                          (raise e)))])
 
                (shell-command->string exe h)))))
-     [(#px"GeoIP Country Edition: (..)," iso-code)
-         (and (not (equal? iso-code "--"))
-              iso-code)]
+     [(regexp #px"GeoIP Country Edition: (..)," (list _ iso-code))
+      (and (not (equal? iso-code "--"))
+           iso-code)]
      [#t #f])))
 
 (provide get-info)
