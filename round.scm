@@ -4,10 +4,10 @@
 ;; figures.
 (define (my-round x digits)
 
-  ;; Returns a representation of x in scientific notation.  The result
-  ;; is a pair whose car is the mantissa, and whose cdr is the
-  ;; exponent.  So, for example, (scientific 27) => (2.7 . 1), meaning
-  ;; that 27 is equal to 2.7 times 10 ^ 1.
+  ;; Returns a representation of x in scientific notation.  The
+  ;; resulting values are the mantissa and the exponent.  So, for
+  ;; example, (scientific 27) => (values 2.7 1), meaning that 27 is equal
+  ;; to 2.7 times 10 ^ 1.
 
   (define (scientific x)
     (let loop ((mantissa x)
