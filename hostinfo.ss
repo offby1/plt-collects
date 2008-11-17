@@ -1,7 +1,6 @@
 #lang scheme
 
 (require net/dns
-         (planet "assert.ss" ("offby1" "offby1.plt"))
          (planet "main.ss" ("dherman" "memoize.plt" 3 1))
          scheme/port
          mzlib/process
