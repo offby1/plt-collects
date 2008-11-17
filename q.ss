@@ -1,19 +1,22 @@
 ;;; Stolen from SICP, and mzscheme-ified
-(module q mzscheme
+#lang scheme
 (provide
- (rename my-make-queue make-queue)
+ (rename-out [my-make-queue make-queue])
  insert-queue!
  delete-queue!
  empty-queue?
  front-queue)
 
 ;; a mutable cons cell.  This is utterly pointless in most schemes,
-;; but in mzscheme v4, cons cells will be immutable by default; so in
+;; but in mzscheme v4, cons cells are immutable by default; so in
 ;; order for this code to work in both v3 and v4, I just don't use the
-;; build in cons cells at all.
-(define-struct my-mcons (car cdr) #f)
+;; built-in cons cells at all.
 
-(define-struct queue (front-ptr rear-ptr) #f)
+;; Note that, despite this cleverness, it still doesn't work in v3,
+;; due to other incompatibilities.
+(define-struct my-mcons (car cdr) #:transparent #:mutable)
+
+(define-struct queue (front-ptr rear-ptr) #:transparent #:mutable)
 (define (empty-queue? q) (null? (queue-front-ptr q)))
 
 (define (front-queue q)
@@ -44,4 +47,3 @@
     (for-each (lambda (item) (insert-queue! rv item))
               seq)
     rv))
-)

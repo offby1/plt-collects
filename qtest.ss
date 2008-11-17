@@ -4,7 +4,7 @@
 exec  mzscheme --require "$0" --main -- ${1+"$@"}
 |#
 
-(module qtest mzscheme
+#lang scheme
 (require (planet schematics/schemeunit:3)
          (planet schematics/schemeunit:3/text-ui)
          "q.ss")
@@ -33,4 +33,3 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
   (exit (run-tests q-tests)))
 
 (provide q-tests main)
-)
