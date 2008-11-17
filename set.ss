@@ -1,18 +1,13 @@
-(module set mzscheme
-  (provide
-   make-set
-   is-present?
-   add!)
+#lang scheme
 
-  (define (make-set . words)
-    (let ((rv (make-hash-table 'equal)))
-      (for-each (lambda (word) (add! word rv))
-                words)
-      rv))
+(provide
+ make-set
+ is-present?)
 
-  (define (is-present? word set)
-    (hash-table-get set word (lambda () #f)))
+(define (make-set . words)
+  (for/fold ([rv (make-immutable-hash '())])
+      ([w (in-list words)])
+      (hash-update rv w (lambda (_) #t) #f)))
 
-  (define (add! word set)
-    (hash-table-put! set word #t)
-    set))
+(define (is-present? word set)
+  (hash-ref set word (lambda () #f)))
