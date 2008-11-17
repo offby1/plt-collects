@@ -1,6 +1,6 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
-#$Id: v4-script-template.ss 5748 2008-11-17 01:57:34Z erich $
+#$Id$
 exec  mzscheme --require "$0" --main -- ${1+"$@"}
 |#
 
@@ -12,12 +12,11 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
 (provide list->histogram main)
 
 (define (list->histogram l)
-  (let ((h (make-hash)))
-    (for-each (lambda (elt)
-                (let ((orig (hash-ref h elt 0)))
-                  (hash-set! h elt (add1 orig))))
-              l)
-    (hash-map h cons)))
+  (hash-map
+   (for/fold ([rv (make-immutable-hash '())])
+       ([elt (in-list l)])
+       (hash-update rv elt add1 0))
+   cons))
 
 ;; makes it easier to test, if we know the order in which the pairs
 ;; appear.  Note that the mzlib "sort" function, happily, is stable.
