@@ -1,16 +1,14 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
 #$Id$
-exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
+exec  mzscheme --require "$0" --main -- ${1+"$@"}
 |#
 
 (module round mzscheme
 (provide my-round)
 (require
- (planet "assert.ss"   ("offby1" "offby1.plt"))
- (planet "test.ss"     ("schematics" "schemeunit.plt" 2))
- (planet "text-ui.ss"  ("schematics" "schemeunit.plt" 2))
- (planet "util.ss"     ("schematics" "schemeunit.plt" 2)))
+ (planet schematics/schemeunit:3)
+ (planet schematics/schemeunit:3/text-ui))
 ;; returns the closest number to X that has exactly DIGITS significant
 ;; figures.
 (define (my-round x digits)
@@ -62,8 +60,8 @@ exec mzscheme -M errortrace -qu "$0" ${1+"$@"}
        (expt 10 (+ exponent 1 (- digits)))
 
        )))
-(exit-if-failed
- (test/text-ui
+(exit
+ (run-tests
   (test-suite
    "The one and only suite"
    (test-equal?
