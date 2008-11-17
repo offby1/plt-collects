@@ -13,7 +13,7 @@ doc:
 	setup-plt -P $(owner) $(plt-file) $(version)
 
 clean:
-	-rm $(plt-file)
+	rm -rf $(plt-file) compiled
 
 install: 
 	$(planet) link $(owner) $(plt-file) $(version) $$(pwd)
