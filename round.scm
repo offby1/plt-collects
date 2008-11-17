@@ -10,19 +10,17 @@
   ;; that 27 is equal to 2.7 times 10 ^ 1.
 
   (define (scientific x)
-    (if (zero? x)
-        (values 0 0)
-
-      (let loop ((mantissa x)
-                 (exponent 0))
-        (if (and (>= (abs mantissa) 1)
-                 (< (abs mantissa) 10))
-            (values mantissa exponent)
+    (let loop ((mantissa x)
+               (exponent 0))
+      (if (or (zero? x)
+              (and (>= (abs mantissa) 1)
+                   (< (abs mantissa) 10)))
+          (values mantissa exponent)
           (if (>= (abs mantissa) 10)
               (loop (/ mantissa 10)
                     (+ exponent 1))
-            (loop (* mantissa 10)
-                  (- exponent 1)))))))
+              (loop (* mantissa 10)
+                    (- exponent 1))))))
 
   (define (eggzackly x)
     (if (exact? x)
