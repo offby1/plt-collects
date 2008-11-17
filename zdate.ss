@@ -1,9 +1,16 @@
+#! /bin/sh
+#| Hey Emacs, this is -*-scheme-*- code!
+#$Id$
+exec  mzscheme --require "$0" --main -- ${1+"$@"}
+|#
+
 #lang scheme
 
 (require scheme/date
          (prefix-in srfi-19- srfi/19)
          scheme/port
-         (planet schematics/schemeunit:3))
+         (planet schematics/schemeunit:3)
+         (planet schematics/schemeunit:3/text-ui))
 
 (define (zdate
          [the-time (srfi-19-current-time)]
@@ -65,14 +72,19 @@
    (else
     (error 'zdate "Don't know what to do with ~s" the-time))))
 
-(provide zdate)
-(check-equal? (zdate 0 #:offset 0) "1970-01-01T00:00:00Z")
-(check-equal? (zdate (srfi-19-make-date 0 0 0 0 1 1 1970 0) #:offset 0) "1970-01-01T00:00:00Z")
-(check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
-(check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
-(check-equal? (zdate (struct-copy
-                      date
-                      (seconds->date (find-seconds 0 0 0 1 1 1970))
-                      [time-zone-offset 0])
-                     #:offset 0)
-              "1970-01-01T00:00:00Z")
+(provide zdate main)
+(define (main . args)
+  (exit
+   (run-tests
+    (test-suite
+     "yeah"
+     (check-equal? (zdate 0 #:offset 0) "1970-01-01T00:00:00Z")
+     (check-equal? (zdate (srfi-19-make-date 0 0 0 0 1 1 1970 0) #:offset 0) "1970-01-01T00:00:00Z")
+     (check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
+     (check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
+     (check-equal? (zdate (struct-copy
+                           date
+                           (seconds->date (find-seconds 0 0 0 1 1 1970))
+                           [time-zone-offset 0])
+                          #:offset 0)
+                   "1970-01-01T00:00:00Z")))))
