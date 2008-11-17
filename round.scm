@@ -11,13 +11,13 @@
 
   (define (scientific x)
     (if (zero? x)
-        (cons 0 0)
+        (values 0 0)
 
       (let loop ((mantissa x)
                  (exponent 0))
         (if (and (>= (abs mantissa) 1)
                  (< (abs mantissa) 10))
-            (cons mantissa exponent)
+            (values mantissa exponent)
           (if (>= (abs mantissa) 10)
               (loop (/ mantissa 10)
                     (+ exponent 1))
@@ -29,13 +29,9 @@
         x
       (inexact->exact x)))
 
-  (let* ((s (scientific x))
-         (mantissa (car s))
-         (exponent (cdr s))
-         (scale-factor (expt 10 (- digits 1))))
-
+  (let-values ([(mantissa exponent) (scientific x)])
     (* (eggzackly (round
-                   (* mantissa scale-factor)))
+                   (* mantissa (expt 10 (- digits 1)))))
 
        ;; You might be tempted to call `inexact->exact' on the return
        ;; from `expt' here, but that would be a mistake, because some
@@ -43,8 +39,6 @@
        ;; so that if, for example, `expt' returned 0.01,
        ;; `inexact->exact' on that value would yield zero instead of
        ;; 1/100.
-       (expt 10 (+ exponent 1 (- digits)))
-
-       )))
+       (expt 10 (+ exponent 1 (- digits))))))
 
 (provide/contract [my-round (-> number? (and/c integer? positive? exact?) number?)])
