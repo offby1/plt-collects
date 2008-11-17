@@ -7,4 +7,5 @@
 (define primary-file "howdy.ss")
 (define categories '(misc))
 (define scribblings '(("manual.scrbl" ())))
+(define repositories '("4.x"))
 )
