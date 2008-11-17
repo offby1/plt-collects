@@ -1,12 +1,12 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
 #$Id$
-exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0" -p "text-ui.ss" "schematics" "schemeunit.plt" -e "(exit (test/text-ui q-tests 'verbose))"
+exec  mzscheme --require "$0" --main -- ${1+"$@"}
 |#
+
 (module qtest mzscheme
-(require (lib "trace.ss")
-         (planet "test.ss"    ("schematics" "schemeunit.plt" 2))
-         (planet "util.ss"    ("schematics" "schemeunit.plt" 2))
+(require (planet schematics/schemeunit:3)
+         (planet schematics/schemeunit:3/text-ui)
          "q.ss")
 
 (define q-tests
@@ -29,5 +29,8 @@ exec mzscheme -M errortrace --no-init-file --mute-banner --version --require "$0
       (check-equal? 'yow (front-queue q))
       ))))
 
-(provide q-tests)
+(define (main . args)
+  (exit (run-tests q-tests)))
+
+(provide q-tests main)
 )
