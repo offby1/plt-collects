@@ -13,21 +13,21 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
 
   (test-suite
    "ya"
-   (test-case
-    "yow"
-    (let ((q (make-queue (list 1 2 3))))
-      (check-equal? 1 (front-queue q))
+   (let ((q (make-queue (list 1 2 3))))
+     (check-equal? 1 (front-queue q))
 
-      (delete-queue! q)
-      (check-equal? 2 (front-queue q))
-      (delete-queue! q)
-      (delete-queue! q)
-      (check-exn
-       exn:fail?
-       (lambda () (front-queue q) ))
-      (insert-queue! q 'yow)
-      (check-equal? 'yow (front-queue q))
-      ))))
+     (delete-queue! q)
+     (check-equal? 2 (front-queue q))
+     (delete-queue! q)
+     (delete-queue! q)
+     (check-exn
+      exn:fail?
+      (lambda () (front-queue q) ))
+     (insert-queue! q 'yow)
+     (check-equal? 'yow (front-queue q)))
+
+   (check-exn exn:fail:contract? (lambda () (front-queue (make-queue '()))))
+   (check-exn exn:fail:contract? (lambda () (delete-queue! (make-queue '()))))))
 
 (define (main . args)
   (exit (run-tests q-tests)))
