@@ -100,7 +100,6 @@
 (define-struct ip-address (a b c d) #:transparent)
 
 (define (ip-address->strings ip)
-  (check-type 'ip-address->strings ip-address? ip)
   (map number->string (cdr (vector->list (struct->vector ip)))))
 
 (define (ip-address->string ip)
