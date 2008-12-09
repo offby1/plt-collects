@@ -9,7 +9,7 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
 (require
  (planet schematics/schemeunit:3)
  (planet schematics/schemeunit:3/text-ui)
- "round.scm")
+ "round.ss")
 
 (provide main)
 (define (main . args)
