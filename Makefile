@@ -3,7 +3,7 @@ planet   := planet
 
 plt-file := offby1.plt
 owner := offby1
-version := 2 0
+version := 2 1
 
 $(plt-file): $(wildcard *.ss *.scm) doc.txt
 	$(planet) create . 
