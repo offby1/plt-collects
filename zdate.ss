@@ -14,11 +14,26 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
 
 (define (zdate
          [the-time (srfi-19-current-time)]
-         #:format [format-string "~4"]
+         #:format [format-string
+
+                   ;; ISO-8601 year-month-day-hour-minute-second-timezone format
+                   "~4"
+
+                   ]
          #:offset [offset
                    (srfi-19-date-zone-offset
                     (srfi-19-time-utc->date (srfi-19-current-time)))])
   (cond
+
+   ((and
+     (string? the-time)
+     (with-handlers
+         ([values
+           (lambda ignored #f)])
+       (srfi-19-string->date the-time "~Y-~m-~dT~H:~M:~S~z")
+       ))
+    => (lambda (thing)
+         (zdate thing #:offset 0)))
 
    ;; Something like "last week" -- let /bin/date parse that
    ((string? the-time)
@@ -82,6 +97,8 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
      (check-equal? (zdate (srfi-19-make-date 0 0 0 0 1 1 1970 0) #:offset 0) "1970-01-01T00:00:00Z")
      (check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
      (check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
+     (check-equal? (zdate "2008-12-28T10:53:26-0500") "2008-12-28T15:53:26Z")
+     (check-equal? (zdate "2008-12-28T15:53:26Z") "2008-12-28T15:53:26Z")
      (check-equal? (zdate (struct-copy
                            date
                            (seconds->date (find-seconds 0 0 0 1 1 1970))
