@@ -30,10 +30,9 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
      (with-handlers
          ([values
            (lambda ignored #f)])
-       (srfi-19-string->date the-time "~Y-~m-~dT~H:~M:~S~z")
-       ))
+       (srfi-19-string->date the-time "~Y-~m-~dT~H:~M:~S~z")))
     => (lambda (thing)
-         (zdate thing #:offset 0)))
+         (zdate thing #:format format-string #:offset 0)))
 
    ;; Something like "last week" -- let /bin/date parse that
    ((string? the-time)
@@ -53,8 +52,8 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
         (when (positive? stat)
           (copy-port stdout-ip (current-output-port))
           (copy-port stderr-ip (current-error-port))
-          (close-input-port stderr-ip)
-          (error 'zdate "/bin/date returned ~s" stat)))
+          (error 'zdate "/bin/date returned ~s" stat))
+        (close-input-port stderr-ip))
       (let ((seconds-string (read-line stdout-ip)))
         (close-input-port stdout-ip)
         (zdate (string->number seconds-string) #:format format-string #:offset offset))))
