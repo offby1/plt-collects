@@ -1,3 +1,7 @@
+<script>
+alert ("I 0wnz");
+</script>
+<html>
 To make the code in here available to mzscheme programs in general:
 
 type "make install"
@@ -7,3 +11,4 @@ Then in your code, do something like
 (require (planet "howdy.ss"   ("offby1" "offby1.plt")))
 
 I suppose I should really upload this stuff to planet.plt-scheme.org.
+</html>
