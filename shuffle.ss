@@ -5,6 +5,10 @@
    ((vector? thing)
     (apply vector (shuffle (vector->list thing))))
    ((list? thing)
+
+    ;; From Eli Barzilay.  This is essentially my old technique of
+    ;; gluing a random number to each element, then sorting by those
+    ;; numbers, then removing them.  But it's vastly shorter.
     (sort
      thing
      <
