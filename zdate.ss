@@ -8,7 +8,6 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
 
 (require scheme/date
          (prefix-in srfi-19- srfi/19)
-         scheme/port
          (planet schematics/schemeunit:3)
          (planet schematics/schemeunit:3/text-ui))
 
