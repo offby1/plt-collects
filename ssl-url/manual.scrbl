@@ -12,11 +12,6 @@ Examples:
 @racketblock[
 (call/input-url
  (string->url "https://encrypted.google.com/")
- (lambda (url)
-   (ssl:get-pure-port
-    url
-    '()))
-
- (lambda (ip)
-   (copy-port ip (current-output-port))))
+ (curryr ssl:get-pure-port '())
+ (curryr copy-port (current-output-port)))
 ]
