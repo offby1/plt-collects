@@ -1,11 +1,10 @@
-(module info (lib "infotab.ss" "setup")
+#lang setup/infotab
+
 (define name "offby1-misc")
 (define blurb
   (list "Buncha stuff I find useful"))
+(define homepage "http://github.com/offby1/plt-collects")
 (define release-notes '(p "Release engineering?  What's that?"))
-(define doc.txt "doc.txt")
-(define primary-file "howdy.ss")
-(define categories '(misc))
-(define scribblings '(("manual.scrbl" ())))
 (define repositories '("4.x"))
-)
+(define required-core-version "4.2")
+(define scribblings '(("manual.scrbl" ())))

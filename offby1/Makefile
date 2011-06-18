@@ -1,12 +1,11 @@
-mzscheme := mzscheme
-planet   := planet
+planet   := raco planet
 
 plt-file := offby1.plt
 owner := offby1
-version := 2 1
+version := 2 2
 
-$(plt-file): $(wildcard *.ss *.scm) doc.txt
-	$(planet) create . 
+$(plt-file): $(wildcard *.ss *.scm *.rkt)
+	$(planet) create . && mv -v "$$(basename $$(pwd)).plt" "$@"
 
 .PHONY: doc
 doc:

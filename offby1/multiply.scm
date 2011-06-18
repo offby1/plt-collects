@@ -68,7 +68,7 @@ as defining `domain's.
     (if (null? lsts)
         (map list lst)
       (apply append (map (lambda (elt)
-                           (map (lambda (x) (cons elt x)) lsts))
+                           (map (curry cons elt) lsts))
                          lst))))
 
   (if (null? list-of-lists)

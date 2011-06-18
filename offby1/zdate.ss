@@ -1,27 +1,32 @@
 #! /bin/sh
 #| Hey Emacs, this is -*-scheme-*- code!
-#$Id$
-exec  mzscheme --require "$0" --main -- ${1+"$@"}
+exec racket --require "$0" --main -- ${1+"$@"}
 |#
 
-#lang scheme
+#lang racket
 
-(require scheme/date
-         (prefix-in srfi-19- srfi/19)
-         (planet schematics/schemeunit:3)
-         (planet schematics/schemeunit:3/text-ui))
+(require
+ (prefix-in srfi-19- srfi/19)
+ racket/date
+ racket/trace
+ rackunit
+ rackunit/text-ui
+ )
 
 (define (zdate
          [the-time (srfi-19-current-time)]
-         #:format [format-string
+         #:format [
+
+                   ;; As defined by Table 1 in SRFI-19
+                   format-string
 
                    ;; ISO-8601 year-month-day-hour-minute-second-timezone format
                    "~4"
 
                    ]
-         #:offset [offset
-                   (srfi-19-date-zone-offset
-                    (srfi-19-time-utc->date (srfi-19-current-time)))])
+         #:offset [offset #f]           ;#f is a special case meaning
+                                        ;"local time"
+                             )
   (cond
 
    ((and
@@ -58,11 +63,19 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
         (zdate (string->number seconds-string) #:format format-string #:offset offset))))
 
    ;; Seconds since The Epoch, like a time_t
-   ((integer? the-time)
-    (zdate (srfi-19-make-time 'time-utc 0 the-time) #:format format-string #:offset offset))
+   ((real? the-time)
+    (let-values ([(nanoseconds seconds)
+                  (let* ([->i (lambda (r) (inexact->exact (truncate r)))]
+                         [int (->i the-time)])
+                    (values   (->i (* (expt 10 9) (- the-time int))) int))])
+      (zdate (srfi-19-make-time 'time-utc nanoseconds seconds) #:format format-string #:offset offset)))
 
    ((srfi-19-time? the-time)
-    (srfi-19-date->string (srfi-19-time-utc->date the-time offset) format-string))
+    (let ([offset (or offset
+                      (srfi-19-date-zone-offset
+                       (srfi-19-time-utc->date the-time)))])
+
+      (srfi-19-date->string (srfi-19-time-utc->date the-time offset) format-string)))
 
    ((srfi-19-date? the-time)
     (zdate (srfi-19-date->time-utc the-time) #:format format-string #:offset offset))
@@ -91,7 +104,10 @@ exec  mzscheme --require "$0" --main -- ${1+"$@"}
    (run-tests
     (test-suite
      "yeah"
-     (check-equal? (zdate 0 #:offset 0) "1970-01-01T00:00:00Z")
+     (check-equal? (zdate 0     #:offset 0) "1970-01-01T00:00:00Z")
+     (check-equal? (zdate 0.1   #:offset 0) "1970-01-01T00:00:00Z")
+     (check-equal? (zdate 0.999 #:offset 0) "1970-01-01T00:00:00Z")
+
      (check-equal? (zdate (srfi-19-make-date 0 0 0 0 1 1 1970 0) #:offset 0) "1970-01-01T00:00:00Z")
      (check-equal? (zdate (srfi-19-make-time 'time-utc 0 0) #:offset 0) "1970-01-01T00:00:00Z")
      (check-equal? (zdate "January 18, 1964" #:offset 0) "1964-01-18T00:00:00Z")
