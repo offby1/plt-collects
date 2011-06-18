@@ -1,0 +1,8 @@
+*.html
+*.plt
+*/compiled/
+*/doc/
+*~
+scribble-common.js
+scribble-style.css
+scribble.css
