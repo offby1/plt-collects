@@ -1,10 +1,11 @@
 #lang scribble/manual
 
-@(require planet/scribble
-      (only-in "ssl-url.rkt" ssl:get-pure-port)
-      (for-label racket
-                 (only-in "ssl-url.rkt" ssl:get-pure-port)
-                 net/url))
+@(require racket
+          planet/scribble
+          (only-in "ssl-url.rkt" ssl:get-pure-port)
+          (for-label racket
+                     (only-in "ssl-url.rkt" ssl:get-pure-port)
+                     net/url))
 
 @title{The ssl-url collection}
 
@@ -33,3 +34,27 @@ Here's the SSL-enabled equivalent (the URL is different because
  (curryr ssl:get-pure-port '())
  (curryr copy-port (current-output-port)))
 ]
+
+Just for fun, here's a list of the symbols that it exports.  I have no
+idea what most of them do, nor do I have any idea why many of them end
+with a dot and a number.
+
+@(define ssl-ns (module->namespace "ssl-url.rkt"))
+
+@(define (begins-with s prefix)
+  (and
+   (<= (string-length prefix)
+       (string-length s))
+   (string=?
+    (substring s 0 (string-length prefix))
+    prefix)))
+
+
+@(apply
+  itemlist
+  (map item
+       (sort
+        (filter
+         (curryr begins-with "ssl:")
+         (map symbol->string (namespace-mapped-symbols ssl-ns)))
+        string<?)))
