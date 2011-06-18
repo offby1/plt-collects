@@ -35,9 +35,10 @@ Here's the SSL-enabled equivalent (the URL is different because
  (curryr copy-port (current-output-port)))
 ]
 
-Just for fun, here's a list of the symbols that it exports.  I have no
-idea what most of them do, nor do I have any idea why many of them end
-with a dot and a number.
+Just for fun, here's a list of the symbols that it exports.  I suspect
+that only the ones whose names contain "port" are useful.
+
+@;;nor do I have any idea why many of them end with a dot and a number.
 
 @(define ssl-ns (module->namespace "ssl-url.rkt"))
 
@@ -50,11 +51,15 @@ with a dot and a number.
     prefix)))
 
 
+@(define (ends-with-a-number s)
+   (regexp-match #rx"\\.[0-9]+$" s))
+
 @(apply
   itemlist
   (map item
        (sort
-        (filter
-         (curryr begins-with "ssl:")
-         (map symbol->string (namespace-mapped-symbols ssl-ns)))
+        (filter (compose not ends-with-a-number)
+                (filter
+                 (curryr begins-with "ssl:")
+                 (map symbol->string (namespace-mapped-symbols ssl-ns))))
         string<?)))
